@@ -13,9 +13,7 @@ const db = mysql.createConnection(
     },
 )
 
-function init() {
-    promptUser()
-}
+
 
 const promptUser = () => {
     return inquirer.prompt([
@@ -29,12 +27,18 @@ const promptUser = () => {
     switch (answers.choice) {
         case 'View all departments' :
             viewDepartments();
+    
+            promptUser();
             break;
         case 'View all roles' :
             viewRoles()
+            
+            promptUser();
             break;
         case 'View all employees' :
             viewEmployees()
+            
+            promptUser();
             break;
         case 'Add a department' :
             addDepartment()
@@ -121,9 +125,10 @@ const promptUser = () => {
                  salary: 0
                }, function (error) {
                    if(error) throw error;
-               })
-             promptUser()
-     })
+               })  
+            promptUser();
+           })
+          
     }
 
     // add employee
@@ -153,7 +158,7 @@ const promptUser = () => {
             {
              type: 'list',
              name: 'manager_id',
-             message: "Who is the employee's manager?",
+             message: "Who is the employee's manager's id?",
              choices: ['1', '2', '3', '4', '5', '6', '7', '8'],
             },
             {
@@ -167,8 +172,8 @@ const promptUser = () => {
             db.query('INSERT INTO employees SET ?', {
                  first_name: answers.first_name,
                  last_name: answers.last_name,
-                 role_id: answers.role_id,
-                 manger_id: answers.manager_id,
+                 manager_id: answers.manager_id,
+                 role_id: answers.role_id, 
                }, function (error) {
                    if(error) throw error;
                })
@@ -177,31 +182,48 @@ const promptUser = () => {
      })
     }
 
-    // function updateEmployeeRole () {
-    //     return inquirer.prompt([
-    //         {
-    //          type: 'list',
-    //          name: 'employee',
-    //          message: "Which employee's role do you want to update?",
-    //          choices: [],
-    //         },
-    //         {
-    //          type: 'list',
-    //          name: 'role',
-    //          message: "Which role do you want to update?",
-    //          choices: ['Salesperson', 'Lead Engineer', 'Software Engineer', 'Account Manager', 'Accountant', 'Legal Team Lead', 'Lawyer', 'Customer Service', 'Sales Lead', 'Salesperson'],
-    //         },
+    const updateEmployeeRole = async () => {
+        let employeesInfo = []
+        let results = await db.promise().query('SELECT id, first_name, last_name FROM employees ')
+        let allEmployees = results[0]
+        if(allEmployees === null) {
+            console.log(allEmployees)
+        } 
+        for(const employee of allEmployees) {
+            let employeeFullName = `${employee.first_name} ${employee.last_name}`
+            employeesInfo.push(employeeFullName)
+        }
+        console.log(employeesInfo)
 
-    //      ]).then((answers) => {
-    //         console.log(answers);
-    //         db.query('UPDATE employees SET ? WHERE id = ?', {
-    //              job_title: answers. job_title,
-    //              department_id: answers.department_id,
-    //              salary: 0
-    //            }, function (error) {
-    //                if(error) throw error;
-    //            })
-    //          promptUser()
-    //  })
-    // }
-    init()
+        // console.log(allEmployees)
+
+        
+        inquirer.prompt([
+            {
+             type: 'list',
+             name: 'employee',
+             message: "Which employee's role do you want to update?",
+             choices: employeesInfo,
+            },
+            {
+             type: 'list',
+             name: 'role',
+             message: "Which role do you want to update?",
+             choices: ['Salesperson', 'Lead Engineer', 'Software Engineer', 'Account Manager', 'Accountant', 'Legal Team Lead', 'Lawyer', 'Customer Service', 'Sales Lead', 'Salesperson'],
+            },
+
+         ]).then((answers) => {
+             let employeeIndex = employeesInfo.indexOf(answers.employee)
+             let employeeSelected = allEmployees[employeeIndex]
+
+             console.log(employeeSelected)
+            console.log(answers);
+            db.query('UPDATE employees SET role WHERE id = ' + employeeSelected, function (error) {
+                   if(error) throw error;
+               })
+        
+             promptUser()
+           })
+    }
+  
+    promptUser()
