@@ -42,14 +42,6 @@ const viewEmployees = () => {
  })
 }
 
-// const renderNewDepartment = () => {
-//  db.query('INSERT INTO departments SET ?', {
-//    department_title: answers.department_title
-//  }, function (err, results) {
-//    console.table(results)
-//  })
-// }
-
 // Default response for any other request (Not Found)
 app.use((req, res) => {
   res.status(404).end();
